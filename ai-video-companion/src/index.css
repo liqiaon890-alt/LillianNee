@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* ─── 设计系统 CSS 变量 ──────────────────────────────────────────────────────── */
+:root {
+  --bg-base:        #0a0a0a;          /* 最深背景，视频区 */
+  --bg-panel:       #111111;          /* 面板背景 */
+  --bg-card:        #1e1e1e;          /* 卡片/气泡背景 */
+  --bg-hover:       #252525;          /* hover 状态 */
+  --bg-input:       #1a1a1a;          /* 输入框背景 */
+  --border-subtle:  #333333;          /* 细分割线 */
+  --text-primary:   #e8e8e8;          /* 主文字 */
+  --text-secondary: #888888;          /* 副文字 */
+  --text-muted:     #555555;          /* 禁用/占位文字 */
+  --accent:         #FF6600;          /* 主橙色 */
+  --accent-glow:    rgba(255,102,0,0.25); /* 橙色光晕 */
+  --accent-hover:   #ff7722;          /* 橙色 hover */
+  --chip-bg:        #1e1e1e;          /* 功能 chip 背景 */
+  --chip-border:    #3a3a3a;          /* chip 边框 */
+
+  /* 阴影 / 光效 */
+  --shadow-user-bubble:   0 4px 12px rgba(255,102,0,0.30);
+  --shadow-panel:        -8px 0 32px rgba(0,0,0,0.60);
+  --shadow-floating-btn: -6px 0 20px rgba(255,102,0,0.40), inset 0 0 12px rgba(255,102,0,0.05);
+  --shadow-floating-hov: -8px 0 24px rgba(255,102,0,0.60), inset 0 0 12px rgba(255,102,0,0.08);
+  --shadow-chip-hover:    0 0 8px rgba(255,102,0,0.25);
+  --shadow-input-focus:   0 0 0 2px rgba(255,102,0,0.25);
+  --shadow-modal:         0 8px 32px rgba(0,0,0,0.50);
+
+  /* VIP 金色渐变 */
+  --vip-gradient: linear-gradient(135deg, #f5c842, #e8a020);
+  --vip-text:     #5a3200;
+}
+
+/* ─── React Flow Controls 深色覆盖 ──────────────────────────────────────────── */
+.react-flow__controls-button {
+  background: #1e1e1e !important;
+  border-color: #333 !important;
+  fill: #aaa !important;
+}
+.react-flow__controls-button:hover {
+  background: #2a2a2a !important;
+  fill: #FF6600 !important;
+}
+.react-flow__controls {
+  box-shadow: none !important;
+  border: 1px solid #333 !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+/* ─── 全局重置 ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── 输入框占位文字颜色 ────────────────────────────────────────────────────────── */
+input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ─── 细滚动条 ────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─── 响应式布局 ─────────────────────────────────────────────────────────────────── */
+
+/* 导航搜索图标：默认隐藏，移动端才显示 */
+.nav-search-icon { display: none !important; }
+
+@media (max-width: 767px) {
+  /* 导航栏 */
+  .tencent-navbar { height: 48px !important; }
+  .nav-links,
+  .nav-vip,
+  .nav-avatar,
+  .nav-search-full { display: none !important; }
+  .nav-search-icon { display: flex !important; }
+
+  /* 搭子选择网格：移动端保持 4 列，与桌面一致 */
+}
+
+/* ─── 视频播放器控制栏 ──────────────────────────────────────────────────────────── */
+video {
+  accent-color: #FF6600;
+}
+video::-webkit-media-controls-panel {
+  background-image: linear-gradient(transparent, rgba(0,0,0,0.82)) !important;
+}
+video::-webkit-media-controls-timeline {
+  height: 3px;
+  border-radius: 2px;
+  accent-color: #FF6600;
+}
+video::-webkit-media-controls-timeline-container {
+  height: 3px;
+}

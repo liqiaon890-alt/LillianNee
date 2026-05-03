@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(mkdir -p /tmp/design_extract)",
+      "Bash(cp /c/Users/HONOR/.claude/projects/C--Users-HONOR-Desktop-AIbanlv-ai-video-companion/5d54bf9c-0e46-47ab-b16a-e13b253bdcb2/tool-results/webfetch-1776962958744-pdwlt4.bin /tmp/design_extract/design.gz)",
+      "Read(//tmp/**)",
+      "Bash(gunzip -f design.gz)",
+      "Bash(tar -xf design)",
+      "Bash(npm run *)"
+    ]
+  }
+}
