@@ -32,22 +32,35 @@ function CompanionIcon({ companion, size = 24 }) {
 
 // ─── 自定义搭子弹窗 ────────────────────────────────────────────────────────────
 function CustomModal({ onConfirm, onClose }) {
-  const [name,  setName]  = useState('')
-  const [type,  setType]  = useState('')
-  const [skill, setSkill] = useState('')
-  const [style, setStyle] = useState('casual')
+  const [name,     setName]     = useState('')
+  const [type,     setType]     = useState('')
+  const [skill,    setSkill]    = useState('')
+  const [style,    setStyle]    = useState('casual')
+  const [roleplay, setRoleplay] = useState(false)
+  const [charName, setCharName] = useState('')
+  const [charDesc, setCharDesc] = useState('')
 
-  const canSubmit = name.trim() && type.trim() && skill.trim()
+  const canSubmit = roleplay
+    ? name.trim() && charName.trim() && charDesc.trim()
+    : name.trim() && type.trim() && skill.trim()
 
   const handleConfirm = () => {
     if (!canSubmit) return
-    const persona = `你是用户的专属 AI 搭子「${name.trim()}」，专注于${type.trim()}相关内容，擅长${skill.trim()}。${STYLE_PERSONA[style]}请完全按照这个角色陪伴用户观看视频。`
+    let persona
+    if (roleplay) {
+      persona = `你现在扮演视频中的角色【${charName.trim()}】。角色描述：${charDesc.trim()}。请完全以该角色的口吻、性格、说话方式回应用户，不要出戏，不要提及自己是AI。`
+    } else {
+      persona = `你是用户的专属 AI 搭子「${name.trim()}」，专注于${type.trim()}相关内容，擅长${skill.trim()}。${STYLE_PERSONA[style]}请完全按照这个角色陪伴用户观看视频。`
+    }
     onConfirm({
       id: `custom_${Date.now()}`,
-      emoji: '⚙️',
+      emoji: roleplay ? '🎭' : '⚙️',
       name: name.trim(),
-      contentType: type.trim(),
+      contentType: roleplay ? `扮演：${charName.trim()}` : type.trim(),
       persona,
+      isRoleplay: roleplay,
+      roleplayCharacter: roleplay ? charName.trim() : undefined,
+      roleplayDesc: roleplay ? charDesc.trim() : undefined,
       recommendedActions: [
         { id: 'summary',      label: '📄 全文总结' },
         { id: 'characterMap', label: '👥 人物关系图' },
@@ -73,60 +86,66 @@ function CustomModal({ onConfirm, onClose }) {
         </div>
 
         <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {[
-            { label: '搭子名字 *', value: name, onChange: setName, placeholder: '例如：法律搭子', autoFocus: true, onKeyDown: e => e.key === 'Enter' && canSubmit && handleConfirm() },
-            { label: '适配视频类型 *', value: type, onChange: setType, placeholder: '例如：法庭纪录片、法律科普' },
-            { label: '它擅长什么 *', value: skill, onChange: setSkill, placeholder: '例如：解读法律条文、分析案情' },
-          ].map(({ label, value, onChange, placeholder, autoFocus, onKeyDown }) => (
-            <div key={label}>
-              <label style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500, display: 'block', marginBottom: 6 }}>
-                {label}
-              </label>
-              <input
-                autoFocus={autoFocus}
-                className="w-full outline-none"
-                style={{
-                  background: 'var(--bg-input)', border: '1px solid var(--border-subtle)',
-                  borderRadius: 8, padding: '8px 12px', fontSize: 13,
-                  color: 'var(--text-primary)', transition: 'border-color 0.2s',
-                }}
-                placeholder={placeholder}
-                value={value}
-                onChange={e => onChange(e.target.value)}
-                onKeyDown={onKeyDown}
-                onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-                onBlur={e => e.target.style.borderColor = 'var(--border-subtle)'}
-              />
-            </div>
-          ))}
+          {/* 搭子名字 */}
+          <ModalField label="搭子名字 *" value={name} onChange={setName} placeholder="例如：法律搭子" autoFocus onEnter={() => canSubmit && handleConfirm()} />
 
-          <div>
-            <label style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500, display: 'block', marginBottom: 8 }}>说话风格</label>
-            <div className="flex gap-2">
-              {STYLE_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setStyle(opt.value)}
-                  style={{
-                    flex: 1, borderRadius: 8, padding: '8px 4px', fontSize: 12,
-                    transition: 'all 0.2s',
-                    background: style === opt.value ? 'var(--accent)' : 'var(--bg-hover)',
-                    border: `1px solid ${style === opt.value ? 'var(--accent)' : 'var(--border-subtle)'}`,
-                    color: style === opt.value ? '#fff' : 'var(--text-secondary)',
-                  }}
-                >
-                  <p style={{ fontWeight: 600, margin: 0 }}>{opt.label}</p>
-                  <p style={{ fontSize: 10, marginTop: 2, opacity: 0.8, margin: 0 }}>{opt.desc}</p>
-                </button>
-              ))}
+          {/* 扮演视频角色开关 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>扮演视频角色</p>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '2px 0 0' }}>以视频中某个角色身份对话</p>
             </div>
+            <button
+              onClick={() => setRoleplay(v => !v)}
+              style={{
+                width: 40, height: 22, borderRadius: 11, border: 'none', cursor: 'pointer',
+                background: roleplay ? 'var(--accent)' : '#333',
+                position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 3, left: roleplay ? 20 : 3,
+                width: 16, height: 16, borderRadius: '50%', background: '#fff',
+                transition: 'left 0.2s',
+              }} />
+            </button>
           </div>
+
+          {roleplay ? (
+            <>
+              <ModalField label="角色名称 *" value={charName} onChange={setCharName} placeholder="例如：韩立、何炅" onEnter={() => canSubmit && handleConfirm()} />
+              <ModalTextarea label="角色性格描述 *" value={charDesc} onChange={setCharDesc} placeholder="例如：性格沉稳、寡言少语，说话直接，偶尔带一点江湖气" />
+            </>
+          ) : (
+            <>
+              <ModalField label="适配视频类型 *" value={type} onChange={setType} placeholder="例如：法庭纪录片、法律科普" onEnter={() => canSubmit && handleConfirm()} />
+              <ModalField label="它擅长什么 *" value={skill} onChange={setSkill} placeholder="例如：解读法律条文、分析案情" onEnter={() => canSubmit && handleConfirm()} />
+              <div>
+                <label style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500, display: 'block', marginBottom: 8 }}>说话风格</label>
+                <div className="flex gap-2">
+                  {STYLE_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setStyle(opt.value)}
+                      style={{
+                        flex: 1, borderRadius: 8, padding: '8px 4px', fontSize: 12,
+                        transition: 'all 0.2s',
+                        background: style === opt.value ? 'var(--accent)' : 'var(--bg-hover)',
+                        border: `1px solid ${style === opt.value ? 'var(--accent)' : 'var(--border-subtle)'}`,
+                        color: style === opt.value ? '#fff' : 'var(--text-secondary)',
+                      }}
+                    >
+                      <p style={{ fontWeight: 600, margin: 0 }}>{opt.label}</p>
+                      <p style={{ fontSize: 10, marginTop: 2, opacity: 0.8, margin: 0 }}>{opt.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
-        <div
-          className="flex gap-3 shrink-0"
-          style={{ padding: '16px 24px', borderTop: '1px solid var(--border-subtle)' }}
-        >
+        <div className="flex gap-3 shrink-0" style={{ padding: '16px 24px', borderTop: '1px solid var(--border-subtle)' }}>
           <button
             style={{
               flex: 1, padding: '10px 0', fontSize: 14, fontWeight: 500,
@@ -146,6 +165,43 @@ function CustomModal({ onConfirm, onClose }) {
           >取消</button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function ModalField({ label, value, onChange, placeholder, autoFocus, onEnter }) {
+  return (
+    <div>
+      <label style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500, display: 'block', marginBottom: 6 }}>{label}</label>
+      <input
+        autoFocus={autoFocus}
+        className="w-full outline-none"
+        style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: 'var(--text-primary)', transition: 'border-color 0.2s' }}
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && onEnter?.()}
+        onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+        onBlur={e => e.target.style.borderColor = 'var(--border-subtle)'}
+      />
+    </div>
+  )
+}
+
+function ModalTextarea({ label, value, onChange, placeholder }) {
+  return (
+    <div>
+      <label style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500, display: 'block', marginBottom: 6 }}>{label}</label>
+      <textarea
+        className="w-full outline-none resize-none"
+        rows={3}
+        style={{ background: 'var(--bg-input)', border: '1px solid var(--border-subtle)', borderRadius: 8, padding: '8px 12px', fontSize: 13, color: 'var(--text-primary)', transition: 'border-color 0.2s', lineHeight: 1.6 }}
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+        onBlur={e => e.target.style.borderColor = 'var(--border-subtle)'}
+      />
     </div>
   )
 }
