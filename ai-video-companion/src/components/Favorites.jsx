@@ -463,15 +463,13 @@ function FavoriteCard({ item, folders, onSource, onCopy, onDelete, onMove }) {
   )
 }
 
-// ─── 文件夹标签（左键选择，长按 600ms 出现重命名/删除菜单） ────────────────
+// ─── 文件夹标签（点击选择，⋯ 按钮打开重命名/删除菜单） ─────────────────────
 function FolderTag({ folder, active, onClick, onRename, onDelete }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 })
   const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(folder.name)
-  const timerRef = useRef(null)
-  const didLongPress = useRef(false)
-  const btnRef = useRef(null)
+  const moreBtnRef = useRef(null)
   const dropRef = useRef(null)
 
   useEffect(() => { setName(folder.name) }, [folder.name])
@@ -479,46 +477,50 @@ function FolderTag({ folder, active, onClick, onRename, onDelete }) {
   useEffect(() => {
     if (!menuOpen) { setRenaming(false); return }
     const handler = (e) => {
-      if (
-        !(btnRef.current?.contains(e.target)) &&
-        !(dropRef.current?.contains(e.target))
-      ) setMenuOpen(false)
+      if (!moreBtnRef.current?.contains(e.target) && !dropRef.current?.contains(e.target))
+        setMenuOpen(false)
     }
     const t = setTimeout(() => document.addEventListener('pointerdown', handler), 10)
     return () => { clearTimeout(t); document.removeEventListener('pointerdown', handler) }
   }, [menuOpen])
 
-  const startPress = () => {
-    didLongPress.current = false
-    timerRef.current = setTimeout(() => {
-      didLongPress.current = true
-      const rect = btnRef.current?.getBoundingClientRect()
-      if (rect) setMenuPos({ x: rect.left, y: rect.bottom + 4 })
-      setMenuOpen(true)
-    }, 600)
+  const handleMoreClick = (e) => {
+    e.stopPropagation()
+    if (menuOpen) { setMenuOpen(false); return }
+    const rect = moreBtnRef.current?.getBoundingClientRect()
+    if (rect) {
+      const x = Math.min(rect.left, window.innerWidth - 148)
+      setMenuPos({ x, y: rect.bottom + 4 })
+    }
+    setMenuOpen(true)
   }
-  const cancelPress = () => clearTimeout(timerRef.current)
-  const handleClick = () => { if (!didLongPress.current) onClick() }
 
   return (
     <>
-      <button
-        ref={btnRef}
-        className="shrink-0"
-        style={{
-          padding: '4px 12px', borderRadius: 9999, fontSize: 12, border: 'none', cursor: 'pointer',
-          background: active ? 'rgba(124,58,237,0.35)' : 'var(--chip-bg)',
-          color: active ? '#c084fc' : 'var(--text-secondary)',
-          transition: 'all 0.2s',
-        }}
-        onPointerDown={startPress}
-        onPointerUp={cancelPress}
-        onPointerLeave={cancelPress}
-        onClick={handleClick}
-        title="左键筛选 / 长按重命名或删除"
-      >
-        📁 {folder.name}
-      </button>
+      <div className="flex items-center shrink-0" style={{ borderRadius: 9999, overflow: 'hidden' }}>
+        <button
+          style={{
+            padding: '4px 6px 4px 12px', fontSize: 12, border: 'none', cursor: 'pointer',
+            background: active ? 'rgba(124,58,237,0.35)' : 'var(--chip-bg)',
+            color: active ? '#c084fc' : 'var(--text-secondary)',
+            transition: 'all 0.2s',
+          }}
+          onClick={onClick}
+        >
+          📁 {folder.name}
+        </button>
+        <button
+          ref={moreBtnRef}
+          style={{
+            padding: '4px 8px 4px 2px', fontSize: 12, border: 'none', cursor: 'pointer',
+            background: active ? 'rgba(124,58,237,0.35)' : 'var(--chip-bg)',
+            color: active ? 'rgba(192,132,252,0.7)' : 'var(--text-muted)',
+            transition: 'all 0.2s', lineHeight: 1,
+          }}
+          onClick={handleMoreClick}
+          title="重命名或删除"
+        >⋯</button>
+      </div>
       {menuOpen && createPortal(
         <div
           ref={dropRef}
@@ -557,15 +559,15 @@ function FolderTag({ folder, active, onClick, onRename, onDelete }) {
                 className="w-full text-left"
                 style={{ padding: '8px 12px', fontSize: 12, color: 'var(--text-primary)', background: 'none', border: 'none', cursor: 'pointer' }}
                 onClick={() => setRenaming(true)}
-                onMouseEnter={e => e.target.style.background = 'var(--bg-card)'}
-                onMouseLeave={e => e.target.style.background = 'none'}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
               >重命名</button>
               <button
                 className="w-full text-left"
                 style={{ padding: '8px 12px', fontSize: 12, color: '#f87171', background: 'none', border: 'none', cursor: 'pointer' }}
                 onClick={() => { onDelete(); setMenuOpen(false) }}
-                onMouseEnter={e => e.target.style.background = 'var(--bg-card)'}
-                onMouseLeave={e => e.target.style.background = 'none'}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
               >删除文件夹</button>
             </>
           )}
